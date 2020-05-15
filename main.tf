@@ -16,7 +16,7 @@ variable "aws_region" {
 variable "availability_zones" {
   description = "A list of availability zones in which to create subnets"
   type        = list(string)
-  default     = ["us-east-1a", "us-east-2b"]
+  default     = ["us-east-1a", "us-east-1b"]
 }
 
 variable "base_cidr_block" {
@@ -24,61 +24,14 @@ variable "base_cidr_block" {
   default     = "20.10.0.0/16"
 }
 
+//terraform apply -var='bastion_source_ips=["0.0.0.0/0"]'
+variable "bastion_source_ips" {
+  description = "The IP Address to whitelist for bastion access"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
 provider "aws" {
   version = "~> 2.0"
   region  = var.aws_region
-}
-
-# Create a VPC
-# Reference:
-# https://www.terraform.io/docs/providers/aws/d/vpc.html
-resource "aws_vpc" "main" {
-  cidr_block = var.base_cidr_block
-  tags = merge(
-    {
-      Name = local.vpc_name
-    },
-    local.common_tags
-  )
-}
-
-resource "aws_subnet" "private" {
-  count             = length(var.availability_zones)
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = cidrsubnet(aws_vpc.main.cidr_block, 4, count.index + 1 + length(var.availability_zones))
-  availability_zone = var.availability_zones[count.index]
-
-  tags = merge(
-    {
-      Name       = format("%s-Subnet-Private-%d", local.vpc_name, count.index + 1)
-      SubnetType = "private"
-    },
-    local.common_tags
-  )
-}
-
-resource "aws_subnet" "public" {
-  count             = length(var.availability_zones)
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = cidrsubnet(aws_vpc.main.cidr_block, 4, count.index + 1)
-  availability_zone = var.availability_zones[count.index]
-
-  tags = merge(
-    {
-      Name       = format("%s-Subnet-Public-%d", local.vpc_name, count.index + 1)
-      SubnetType = "public"
-    },
-    local.common_tags
-  )
-}
-
-resource "aws_internet_gateway" "main" {
-  vpc_id = aws_vpc.main.id
-
-  tags = merge(
-    {
-      Name = format("%s-IGW", local.vpc_name)
-    },
-    local.common_tags
-  )
 }
