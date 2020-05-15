@@ -24,6 +24,29 @@ resource "aws_subnet" "private" {
   )
 }
 
+resource "aws_nat_gateway" "main" {
+  allocation_id = aws_eip.nat_ip.id
+  subnet_id     = aws_subnet.public[0].id
+  depends_on    = [aws_internet_gateway.main]
+
+  tags = merge(
+    {
+      Name = format("%s-NAT-GW", local.vpc_name)
+    },
+    local.common_tags
+  )
+}
+
+resource "aws_eip" "nat_ip" {
+  vpc = true
+  tags = merge(
+    {
+      Name = format("%s-NAT-IP", local.vpc_name)
+    },
+    local.common_tags
+  )
+}
+
 resource "aws_subnet" "public" {
   count             = length(var.availability_zones)
   vpc_id            = aws_vpc.main.id
@@ -110,6 +133,11 @@ resource "aws_network_acl" "public" {
 resource "aws_default_route_table" "default_routes" {
   default_route_table_id = aws_vpc.main.default_route_table_id
 
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_nat_gateway.main.id
+  }
+
   tags = merge(
     {
       Name = format("%s-RouteTable-Default", local.vpc_name)
@@ -130,38 +158,42 @@ resource "aws_default_network_acl" "default" {
   )
 }
 
-resource "aws_network_acl_rule" "ssh_internal_outbound" {
+resource "aws_network_acl_rule" "private_outbound" {
   network_acl_id = aws_default_network_acl.default.id
   rule_number    = 100
   protocol       = "-1"
   rule_action    = "allow"
-  cidr_block     = aws_vpc.main.cidr_block
+  cidr_block     = "0.0.0.0/0"
 }
 
-resource "aws_network_acl_rule" "ssh_internal_inbound" {
+resource "aws_network_acl_rule" "private_inbound" {
   network_acl_id = aws_default_network_acl.default.id
   rule_number    = 100
   egress         = true
   protocol       = "-1"
   rule_action    = "allow"
-  cidr_block     = aws_vpc.main.cidr_block
+  cidr_block     = "0.0.0.0/0"
 }
 
 //default SG locked down
 resource "aws_default_security_group" "default" {
   vpc_id = aws_vpc.main.id
 
-  //we only allow internal,instance-to-instance communication by default
   ingress {
-    protocol  = -1
-    self      = true
-    from_port = 0
-    to_port   = 0
+    protocol    = -1
+    self        = true
+    from_port   = 0
+    to_port     = 0
+    description = "Allow all inbound traffic from members of this group"
   }
-  tags = merge(
-    {
-      Name = format("%s-SG-Default", local.vpc_name)
-    },
-    local.common_tags
-  )
+
+  egress {
+    protocol    = -1
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 0
+    to_port     = 0
+    description = "We dont care about the outbound traffic"
+  }
+
+  tags = local.common_tags
 }
