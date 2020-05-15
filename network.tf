@@ -130,6 +130,23 @@ resource "aws_default_network_acl" "default" {
   )
 }
 
+resource "aws_network_acl_rule" "ssh_internal_outbound" {
+  network_acl_id = aws_default_network_acl.default.id
+  rule_number    = 100
+  protocol       = "-1"
+  rule_action    = "allow"
+  cidr_block     = aws_vpc.main.cidr_block
+}
+
+resource "aws_network_acl_rule" "ssh_internal_inbound" {
+  network_acl_id = aws_default_network_acl.default.id
+  rule_number    = 100
+  egress         = true
+  protocol       = "-1"
+  rule_action    = "allow"
+  cidr_block     = aws_vpc.main.cidr_block
+}
+
 //default SG locked down
 resource "aws_default_security_group" "default" {
   vpc_id = aws_vpc.main.id
