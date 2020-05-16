@@ -30,3 +30,5 @@ override.tf.json
 
 .idea
 *.iml
+
+*.tfvars

@@ -9,7 +9,7 @@ terraform init
 
 ## Prepare a Plan
 ```
-terraform plan -out .terraform/plan
+terraform plan -out .terraform/plan -var-file="local.tfvars"
 ```
 
 ## Apply the Plan
