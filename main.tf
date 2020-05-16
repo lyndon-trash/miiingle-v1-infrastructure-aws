@@ -24,11 +24,19 @@ variable "base_cidr_block" {
   default     = "20.10.0.0/16"
 }
 
+//this should only be your dev/CI machine's IP
 //terraform apply -var='bastion_source_ips=["0.0.0.0/0"]'
 variable "bastion_source_ips" {
   description = "The IP Address to whitelist for bastion access"
   type        = list(string)
   default     = ["0.0.0.0/0"]
+}
+
+//use env variables for the actual value, or parameterize this
+variable "bastion_public_key" {
+  description = "The Public Key with access to the bastion host"
+  type        = string
+  default     = "ssh-rsa <insert public key here> <user>@<machine>"
 }
 
 provider "aws" {
