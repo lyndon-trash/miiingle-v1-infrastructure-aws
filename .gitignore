@@ -32,3 +32,4 @@ override.tf.json
 *.iml
 
 *.tfvars
+kubeconfig_*

@@ -1,5 +1,5 @@
 
-module "eks" {
+module "eks_cluster" {
   source       = "terraform-aws-modules/eks/aws"
   cluster_name = var.eks_cluster_name
   vpc_id       = aws_vpc.main.id
@@ -7,26 +7,20 @@ module "eks" {
 
   tags = local.common_tags
 
-  worker_groups = [
+  node_groups = [
     {
-      name                          = "worker-group-1"
-      instance_type                 = "t2.small"
-      asg_desired_capacity          = 2
-      additional_security_group_ids = [aws_default_security_group.default.id]
-    },
-    {
-      name                          = "worker-group-2"
-      instance_type                 = "t2.medium"
-      asg_desired_capacity          = 2
-      additional_security_group_ids = [aws_default_security_group.default.id]
+      name = "worker-group-1"
+      additional_tags  = local.common_tags
+      desired_capacity = 2
+      subnets          = aws_subnet.private.*.id
     }
   ]
 }
 
 data "aws_eks_cluster" "cluster" {
-  name = module.eks.cluster_id
+  name = module.eks_cluster.cluster_id
 }
 
 data "aws_eks_cluster_auth" "cluster" {
-  name = module.eks.cluster_id
+  name = module.eks_cluster.cluster_id
 }
