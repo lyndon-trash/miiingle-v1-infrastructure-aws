@@ -17,8 +17,10 @@ resource "aws_subnet" "private" {
 
   tags = merge(
     {
-      Name       = format("%s-Subnet-Private-%d", local.vpc_name, count.index + 1)
-      SubnetType = "private"
+      Name                                            = format("%s-Subnet-Private-%d", local.vpc_name, count.index + 1)
+      SubnetType                                      = "private",
+      "kubernetes.io/cluster/${var.eks_cluster_name}" = "shared"
+      "kubernetes.io/role/internal-elb"               = "1"
     },
     local.common_tags
   )
@@ -55,8 +57,10 @@ resource "aws_subnet" "public" {
 
   tags = merge(
     {
-      Name       = format("%s-Subnet-Public-%d", local.vpc_name, count.index + 1)
-      SubnetType = "public"
+      Name                                            = format("%s-Subnet-Public-%d", local.vpc_name, count.index + 1)
+      SubnetType                                      = "public"
+      "kubernetes.io/cluster/${var.eks_cluster_name}" = "shared"
+      "kubernetes.io/role/elb"                        = "1"
     },
     local.common_tags
   )
