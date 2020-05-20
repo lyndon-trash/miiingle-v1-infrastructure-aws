@@ -1,4 +1,9 @@
 
+//TODO: follow this
+//this is a really horrible way of building the network
+//use the VPC module instead
+//https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/examples/basic/main.tf
+
 resource "aws_vpc" "main" {
   cidr_block = var.base_cidr_block
   tags = merge(
