@@ -29,11 +29,17 @@ module "eks_cluster" {
   ]
 }
 
-//this is how you attach an extra policy in case you want extra powers for your nodes
-//resource "aws_iam_role_policy_attachment" "cluster_AWSXRayDaemonWriteAccess" {
-//  policy_arn = "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
-//  role       = module.eks_cluster.worker_iam_role_name
-//}
+resource "aws_iam_role_policy_attachment" "cluster_AWSXRayDaemonWriteAccess" {
+  policy_arn = "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
+  role       = module.eks_cluster.worker_iam_role_name
+}
+
+//TODO: this is overkill, figure out a policy with less access
+//https://docs.aws.amazon.com/eks/latest/userguide/cluster-autoscaler.html
+resource "aws_iam_role_policy_attachment" "cluster_AutoScalingFullAccess" {
+  policy_arn = "arn:aws:iam::aws:policy/AutoScalingFullAccess"
+  role       = module.eks_cluster.worker_iam_role_name
+}
 
 data "aws_eks_cluster" "cluster" {
   name = module.eks_cluster.cluster_id
