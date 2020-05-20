@@ -22,6 +22,14 @@ terraform apply ".terraform/plan"
 aws eks --region us-east-1 update-kubeconfig --name <cluster name>
 ```
 
+## Setup the Metrics Server
+```
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.3.6/components.yaml
+
+//verify:
+kubectl get deployment metrics-server -n kube-system
+```
+
 ## Setup Autoscaling NodeGroups
 ```
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/autoscaler/master/cluster-autoscaler/cloudprovider/aws/examples/cluster-autoscaler-autodiscover.yaml
