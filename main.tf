@@ -38,6 +38,12 @@ variable "bastion_public_key" {
   type        = string
 }
 
+variable "create_bastion" {
+  description = "Whether to create a bastion or not"
+  type        = bool
+  default     = false
+}
+
 variable "eks_cluster_name" {
   description = "EKS Cluster name"
   type        = string

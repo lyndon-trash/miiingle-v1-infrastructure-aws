@@ -15,6 +15,7 @@ data "aws_ami" "amazon_linux_2" {
 }
 
 resource "aws_instance" "bastion" {
+  count                       = var.create_bastion ? 1 : 0
   ami                         = data.aws_ami.amazon_linux_2.id
   instance_type               = "t2.micro"
   associate_public_ip_address = true
