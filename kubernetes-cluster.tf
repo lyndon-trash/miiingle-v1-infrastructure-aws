@@ -13,14 +13,13 @@ module "eks_cluster" {
 
   node_groups = [
     {
-      name            = "worker-group-1"
       additional_tags = local.common_tags
       k8s_labels = {
         Environment = "test"
         GithubRepo  = "terraform-aws-eks"
         GithubOrg   = "terraform-aws-modules"
       }
-      instance_type    = "m5.large"
+      instance_type    = "t3.medium"
       desired_capacity = 1
       min_capacity     = 1
       max_capacity     = 10
