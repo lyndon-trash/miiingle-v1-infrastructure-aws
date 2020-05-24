@@ -143,8 +143,8 @@ resource "aws_default_route_table" "default_routes" {
   default_route_table_id = aws_vpc.main.default_route_table_id
 
   route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_nat_gateway.main.id
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.main.id
   }
 
   tags = merge(
@@ -165,6 +165,30 @@ resource "aws_default_network_acl" "default" {
     },
     local.common_tags
   )
+
+  subnet_ids = aws_subnet.private.*.id
+
+  egress {
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 0
+    icmp_code  = 0
+    icmp_type  = 0
+    protocol   = "-1"
+    rule_no    = 100
+    to_port    = 0
+  }
+
+  ingress {
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 0
+    icmp_code  = 0
+    icmp_type  = 0
+    protocol   = "-1"
+    rule_no    = 100
+    to_port    = 0
+  }
 }
 
 resource "aws_network_acl_rule" "private_outbound" {
