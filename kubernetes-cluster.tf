@@ -7,9 +7,15 @@ module "eks_cluster" {
 
   tags = local.common_tags
 
+  map_accounts = [var.account_id]
+  map_users = [
+    {
+      userarn  = "arn:aws:iam::${var.account_id}:user/${var.ci_user}"
+      username = "ci-user"
+      groups   = ["system:masters"]
+    }
+  ]
   //  map_roles    = var.map_roles
-  //  map_users    = var.map_users
-  //  map_accounts = var.map_accounts
 
   node_groups = [
     {
