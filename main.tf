@@ -50,6 +50,13 @@ variable "eks_cluster_name" {
   default     = "terraform-cluster"
 }
 
+//the load balancer is currently created outside of TF
+//specifically on kubernetes itself as a service of type LoadBalancer
+variable "eks_lb_name" {
+  description = "EKS Internal Load Balancer Unique Name"
+  type        = string
+}
+
 provider "aws" {
   version = "~> 2.0"
   region  = var.aws_region
