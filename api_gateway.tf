@@ -13,26 +13,6 @@ resource "aws_api_gateway_rest_api" "main" {
   }
 }
 
-resource "aws_api_gateway_vpc_link" "prod" {
-  name        = format("%s Link", local.vpc_name)
-  description = format("%s Link for API Gateway to EKS", local.vpc_name)
-  target_arns = [data.aws_lb.prod.arn]
-
-  tags = local.common_tags
-}
-
-resource "aws_api_gateway_stage" "prod" {
-  stage_name    = "prod"
-  rest_api_id   = aws_api_gateway_rest_api.main.id
-  deployment_id = aws_api_gateway_deployment.prod.id
-}
-
-resource "aws_api_gateway_deployment" "prod" {
-  depends_on  = [aws_api_gateway_integration.registrations_get_integration]
-  rest_api_id = aws_api_gateway_rest_api.main.id
-  stage_name  = "prod"
-}
-
 resource "aws_api_gateway_resource" "registrations" {
   rest_api_id = aws_api_gateway_rest_api.main.id
   parent_id   = aws_api_gateway_rest_api.main.root_resource_id
@@ -44,6 +24,14 @@ resource "aws_api_gateway_method" "registrations_get" {
   resource_id   = aws_api_gateway_resource.registrations.id
   http_method   = "GET"
   authorization = "NONE"
+}
+
+resource "aws_api_gateway_vpc_link" "prod" {
+  name        = format("%s Link", local.vpc_name)
+  description = format("%s Link for API Gateway to EKS", local.vpc_name)
+  target_arns = [data.aws_lb.prod.arn]
+
+  tags = local.common_tags
 }
 
 resource "aws_api_gateway_integration" "registrations_get_integration" {
@@ -58,3 +46,11 @@ resource "aws_api_gateway_integration" "registrations_get_integration" {
   uri                     = "http://${data.aws_lb.prod.dns_name}/registrations"
   integration_http_method = "GET"
 }
+
+resource "aws_api_gateway_deployment" "prod" {
+  depends_on  = [aws_api_gateway_integration.registrations_get_integration]
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  stage_name  = "prod"
+}
+
+
