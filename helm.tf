@@ -24,6 +24,7 @@ resource "kubernetes_cluster_role_binding" "tiller" {
 }
 
 resource "helm_release" "kube-utils" {
+  depends_on = [kubernetes_cluster_role_binding.tiller, kubernetes_service_account.tiller]
   chart = "../infrastructure-helm/kube-utils"
   name = "kube-utils"
 }
