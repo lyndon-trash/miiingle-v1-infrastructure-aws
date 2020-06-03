@@ -39,6 +39,7 @@ resource "aws_apigatewayv2_route" "eks_internal" {
   api_id         = aws_apigatewayv2_api.main.id
   route_key      = "ANY /"
   operation_name = "Forward API Calls to EKS"
+  target         = format("integrations/%s", aws_apigatewayv2_integration.eks_internal.id)
 }
 
 resource "aws_apigatewayv2_integration" "eks_internal" {
@@ -50,7 +51,21 @@ resource "aws_apigatewayv2_integration" "eks_internal" {
   connection_type = "VPC_LINK"
   connection_id   = aws_apigatewayv2_vpc_link.eks_internal.id
 
-  integration_type   = "HTTP_PROXY"
-  integration_method = "ANY"
-  integration_uri    = data.aws_lb_listener.eks_internal.arn
+  integration_type     = "HTTP_PROXY"
+  integration_method   = "ANY"
+  integration_uri      = data.aws_lb_listener.eks_internal.arn
+  passthrough_behavior = "WHEN_NO_MATCH"
+}
+
+resource "aws_apigatewayv2_stage" "prod" {
+  api_id      = aws_apigatewayv2_api.main.id
+  name        = "prod"
+  description = "Production API"
+  auto_deploy = true
+
+  default_route_settings {
+    logging_level = "OFF"
+  }
+
+  tags = local.common_tags
 }
