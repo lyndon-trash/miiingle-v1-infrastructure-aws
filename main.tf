@@ -9,7 +9,7 @@ locals {
 }
 
 provider "aws" {
-  version = "~> 2.0"
+  version = ">= 2.65.0"
   region  = var.aws_region
 }
 
@@ -18,6 +18,7 @@ provider "kubernetes" {
 }
 
 provider "helm" {
+  version = "~> 1.2.1"
   kubernetes {
     config_path = module.eks_cluster.kubeconfig_filename
   }
