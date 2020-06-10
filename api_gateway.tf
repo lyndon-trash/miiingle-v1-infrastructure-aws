@@ -63,11 +63,15 @@ resource "aws_apigatewayv2_stage" "prod" {
   description = "Production API"
   auto_deploy = true
 
+  //for reference:
+  //https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html#context-variable-reference
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.api_logs.arn
     format = jsonencode(
       {
         httpMethod     = "$context.httpMethod"
+        stage          = "$context.stage"
+        path           = "$context.path"
         ip             = "$context.identity.sourceIp"
         protocol       = "$context.protocol"
         requestId      = "$context.requestId"
