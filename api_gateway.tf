@@ -37,7 +37,7 @@ resource "aws_apigatewayv2_route" "eks_internal" {
   depends_on = [helm_release.backend]
 
   api_id         = aws_apigatewayv2_api.main.id
-  route_key      = "ANY /"
+  route_key      = "ANY /{proxy+}"
   operation_name = "Forward API Calls to EKS"
   target         = format("integrations/%s", aws_apigatewayv2_integration.eks_internal.id)
 }
@@ -59,7 +59,7 @@ resource "aws_apigatewayv2_integration" "eks_internal" {
 
 resource "aws_apigatewayv2_stage" "prod" {
   api_id      = aws_apigatewayv2_api.main.id
-  name        = "prod"
+  name        = "$default"
   description = "Production API"
   auto_deploy = true
 
