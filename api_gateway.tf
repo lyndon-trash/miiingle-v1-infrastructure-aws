@@ -39,7 +39,22 @@ resource "aws_apigatewayv2_route" "eks_internal" {
   api_id         = aws_apigatewayv2_api.main.id
   route_key      = "ANY /{proxy+}"
   operation_name = "Forward API Calls to EKS"
-  target         = format("integrations/%s", aws_apigatewayv2_integration.eks_internal.id)
+  target         = "integrations/${aws_apigatewayv2_integration.eks_internal.id}"
+
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito_authorizer.id
+}
+
+resource "aws_apigatewayv2_authorizer" "cognito_authorizer" {
+  api_id           = aws_apigatewayv2_api.main.id
+  authorizer_type  = "JWT"
+  identity_sources = ["$request.header.Authorization"]
+  name             = "cognito"
+
+  jwt_configuration {
+    audience = [aws_cognito_user_pool_client.client.id]
+    issuer   = "https://${aws_cognito_user_pool.main.endpoint}"
+  }
 }
 
 resource "aws_apigatewayv2_integration" "eks_internal" {
