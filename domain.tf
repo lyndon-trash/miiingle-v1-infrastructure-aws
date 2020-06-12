@@ -39,10 +39,10 @@ resource "aws_apigatewayv2_api_mapping" "api" {
   stage       = aws_apigatewayv2_stage.prod.id
 }
 
-//TODO: figure this out
-//resource "aws_route53_record" "api_dns_record" {
-//  name = "api"
-//  type = "CNAME"
-//  zone_id = data.aws_route53_zone.zone.zone_id
-//  records = [aws_apigatewayv2_domain_name.api.]
-//}
+resource "aws_route53_record" "api_dns_record" {
+  zone_id = data.aws_route53_zone.zone.zone_id
+  name    = "api"
+  type    = "CNAME"
+  records = aws_apigatewayv2_domain_name.api.domain_name_configuration.*.target_domain_name
+  ttl     = 60
+}
