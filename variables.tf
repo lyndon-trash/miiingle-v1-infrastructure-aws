@@ -49,3 +49,9 @@ variable "ci_user" {
   description = "The AWS IAM Username for the CI"
   type        = string
 }
+
+variable "domain_base" {
+  description = "The base domain"
+  type        = string
+  default     = "miiingle.net"
+}
