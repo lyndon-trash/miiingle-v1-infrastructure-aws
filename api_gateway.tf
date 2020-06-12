@@ -45,6 +45,15 @@ resource "aws_apigatewayv2_route" "eks_internal" {
   authorizer_id      = aws_apigatewayv2_authorizer.cognito_authorizer.id
 }
 
+resource "aws_apigatewayv2_route" "eks_internal_options" {
+  depends_on = [aws_apigatewayv2_route.eks_internal]
+
+  api_id         = aws_apigatewayv2_api.main.id
+  route_key      = "OPTIONS /{proxy+}"
+  operation_name = "Forward API Calls to EKS"
+  target         = "integrations/${aws_apigatewayv2_integration.eks_internal.id}"
+}
+
 resource "aws_apigatewayv2_authorizer" "cognito_authorizer" {
   api_id           = aws_apigatewayv2_api.main.id
   authorizer_type  = "JWT"
