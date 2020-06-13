@@ -7,6 +7,14 @@ resource "aws_apigatewayv2_api" "main" {
   description   = "The API"
   protocol_type = "HTTP"
   tags          = local.common_tags
+
+  cors_configuration {
+    allow_origins     = ["https://localhost:4200", "https://app.${var.domain_base}"]
+    allow_credentials = true
+    allow_headers     = ["*"]
+    allow_methods     = ["*"]
+    max_age           = 300
+  }
 }
 
 data "aws_lb" "eks_internal" {
@@ -33,25 +41,30 @@ resource "aws_apigatewayv2_vpc_link" "eks_internal" {
   tags = local.common_tags
 }
 
-resource "aws_apigatewayv2_route" "eks_internal" {
-  depends_on = [helm_release.backend]
+resource "aws_apigatewayv2_route" "eks_internal_options" {
+  api_id         = aws_apigatewayv2_api.main.id
+  route_key      = "OPTIONS /{proxy+}"
+  operation_name = "CORS Pre-flight"
+  target         = "integrations/${aws_apigatewayv2_integration.eks_internal.id}"
+}
+
+variable "http_methods" {
+  description = "The HTTP Methods that are allowed to operate on our resources"
+  type        = list(string)
+  default     = ["GET", "POST", "PUT", "PATCH", "DELETE"]
+}
+
+resource "aws_apigatewayv2_route" "eks_internal_get" {
+  depends_on = [helm_release.backend, aws_apigatewayv2_route.eks_internal_options]
+  count      = length(var.http_methods)
 
   api_id         = aws_apigatewayv2_api.main.id
-  route_key      = "ANY /{proxy+}"
-  operation_name = "Forward API Calls to EKS"
-  target         = "integrations/${aws_apigatewayv2_integration.eks_internal.id}"
+  route_key      = "${var.http_methods[count.index]} /{proxy+}"
+  operation_name = "${var.http_methods[count.index]} Resource"
+  target         = aws_apigatewayv2_route.eks_internal_options.target
 
   authorization_type = "JWT"
   authorizer_id      = aws_apigatewayv2_authorizer.cognito_authorizer.id
-}
-
-resource "aws_apigatewayv2_route" "eks_internal_options" {
-  depends_on = [aws_apigatewayv2_route.eks_internal]
-
-  api_id         = aws_apigatewayv2_api.main.id
-  route_key      = "OPTIONS /{proxy+}"
-  operation_name = "Forward API Calls to EKS"
-  target         = "integrations/${aws_apigatewayv2_integration.eks_internal.id}"
 }
 
 resource "aws_apigatewayv2_authorizer" "cognito_authorizer" {
