@@ -16,9 +16,9 @@ resource "aws_acm_certificate" "api" {
 }
 
 resource "aws_route53_record" "cert_validation_api" {
+  zone_id = data.aws_route53_zone.zone.zone_id
   name    = aws_acm_certificate.api.domain_validation_options.0.resource_record_name
   type    = aws_acm_certificate.api.domain_validation_options.0.resource_record_type
-  zone_id = data.aws_route53_zone.zone.zone_id
   records = [aws_acm_certificate.api.domain_validation_options.0.resource_record_value]
   ttl     = 60
 }
@@ -44,5 +44,33 @@ resource "aws_route53_record" "api_dns_record" {
   name    = "api"
   type    = "CNAME"
   records = aws_apigatewayv2_domain_name.api.domain_name_configuration.*.target_domain_name
+  ttl     = 60
+}
+
+resource "aws_acm_certificate" "web_app" {
+  domain_name       = "app.${var.domain_base}"
+  validation_method = "DNS"
+
+  tags = merge(
+    {
+      Name = "Cert app.${var.domain_base}"
+    },
+    local.common_tags
+  )
+}
+
+resource "aws_route53_record" "cert_validation_web_app" {
+  zone_id = data.aws_route53_zone.zone.zone_id
+  type    = aws_acm_certificate.web_app.domain_validation_options.0.resource_record_type
+  name    = aws_acm_certificate.web_app.domain_validation_options.0.resource_record_name
+  records = [aws_acm_certificate.web_app.domain_validation_options.0.resource_record_value]
+  ttl     = 60
+}
+
+resource "aws_route53_record" "web_app_dns_record" {
+  zone_id = data.aws_route53_zone.zone.zone_id
+  name    = "app"
+  type    = "CNAME"
+  records = [aws_cloudfront_distribution.frontend_webapp_distribution.domain_name]
   ttl     = 60
 }
