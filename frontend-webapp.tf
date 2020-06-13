@@ -23,13 +23,47 @@ resource "aws_s3_bucket" "frontend_webapp" {
   )
 }
 
+resource "aws_cloudfront_origin_access_identity" "default" {
+  comment = "CloudFront access to the private bucket"
+}
+
+data "aws_iam_policy_document" "s3_policy" {
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.frontend_webapp.arn}/*"]
+    principals {
+      type        = "AWS"
+      identifiers = [aws_cloudfront_origin_access_identity.default.iam_arn]
+    }
+  }
+
+  statement {
+    actions   = ["s3:ListBucket"]
+    resources = [aws_s3_bucket.frontend_webapp.arn]
+
+    principals {
+      type        = "AWS"
+      identifiers = [aws_cloudfront_origin_access_identity.default.iam_arn]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "frontend_webapp_distribution_access_s3" {
+  bucket = aws_s3_bucket.frontend_webapp.id
+  policy = data.aws_iam_policy_document.s3_policy.json
+}
+
 resource "aws_cloudfront_distribution" "frontend_webapp_distribution" {
   depends_on = [aws_acm_certificate.web_app]
   aliases    = ["app.${var.domain_base}"]
 
   origin {
-    domain_name = aws_s3_bucket.frontend_webapp.bucket_domain_name
+    domain_name = aws_s3_bucket.frontend_webapp.bucket_regional_domain_name
     origin_id   = "S3-app.${var.domain_base}"
+
+    s3_origin_config {
+      origin_access_identity = aws_cloudfront_origin_access_identity.default.cloudfront_access_identity_path
+    }
   }
 
   default_cache_behavior {
@@ -58,8 +92,8 @@ resource "aws_cloudfront_distribution" "frontend_webapp_distribution" {
   enabled             = true
 
   viewer_certificate {
-    acm_certificate_arn = aws_acm_certificate.web_app.arn
-    ssl_support_method = "sni-only"
+    acm_certificate_arn      = aws_acm_certificate.web_app.arn
+    ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2018"
   }
 }
