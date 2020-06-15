@@ -1,6 +1,7 @@
 resource "aws_s3_bucket" "frontend_webapp" {
-  bucket = "app.${var.domain_base}"
-  acl    = "private"
+  bucket        = "app.${var.domain_base}"
+  acl           = "private"
+  force_destroy = true
 
   website {
     index_document = "index.html"
