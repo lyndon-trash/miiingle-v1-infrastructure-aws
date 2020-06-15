@@ -2,6 +2,13 @@ resource "aws_cognito_user_pool" "main" {
   name = "prod_users"
 }
 
+resource "aws_cognito_user_pool_domain" "main" {
+  depends_on      = [aws_route53_record.apex]
+  user_pool_id    = aws_cognito_user_pool.main.id
+  domain          = aws_acm_certificate.cognito_domain.domain_name
+  certificate_arn = aws_acm_certificate.cognito_domain.arn
+}
+
 resource "aws_cognito_user_pool_client" "client" {
   name         = "client-web"
   user_pool_id = aws_cognito_user_pool.main.id
