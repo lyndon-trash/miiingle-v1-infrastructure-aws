@@ -37,8 +37,8 @@ resource "aws_cognito_user_pool_client" "client" {
     "ALLOW_USER_SRP_AUTH",
   ]
 
-  logout_urls   = ["https://localhost:4200/logout"]
-  callback_urls = ["https://localhost:4200/auth"]
+  logout_urls   = ["https://app.${var.domain_base}/logout", "https://localhost:4200/logout"]
+  callback_urls = ["https://app.${var.domain_base}/auth", "https://localhost:4200/auth"]
 }
 
 resource "aws_cognito_resource_server" "resource" {
