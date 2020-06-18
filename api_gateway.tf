@@ -35,8 +35,8 @@ data "aws_lb_listener" "eks_internal" {
 
 resource "aws_apigatewayv2_vpc_link" "eks_internal" {
   name               = format("%s Link", local.vpc_name)
-  security_group_ids = [aws_default_security_group.default.id]
-  subnet_ids         = aws_subnet.private.*.id
+  security_group_ids = [module.vpc.default_security_group_id]
+  subnet_ids         = module.vpc.private_subnets
 
   tags = local.common_tags
 }

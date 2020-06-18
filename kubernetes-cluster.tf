@@ -2,8 +2,8 @@
 module "eks_cluster" {
   source       = "terraform-aws-modules/eks/aws"
   cluster_name = var.eks_cluster_name
-  vpc_id       = aws_vpc.main.id
-  subnets      = aws_subnet.private.*.id
+  vpc_id       = module.vpc.vpc_id
+  subnets      = module.vpc.private_subnets
 
   tags = local.common_tags
 
@@ -15,7 +15,6 @@ module "eks_cluster" {
       groups   = ["system:masters"]
     }
   ]
-  //  map_roles    = var.map_roles
 
   node_groups = [
     {
@@ -29,7 +28,7 @@ module "eks_cluster" {
       desired_capacity = 1
       min_capacity     = 1
       max_capacity     = 10
-      subnets          = aws_subnet.private.*.id
+      subnets          = module.vpc.private_subnets
     }
   ]
 }

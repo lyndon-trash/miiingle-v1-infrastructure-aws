@@ -20,9 +20,9 @@ resource "aws_instance" "bastion" {
   instance_type               = "t2.micro"
   associate_public_ip_address = true
 
-  security_groups = [aws_security_group.bastion_sg.id, aws_default_security_group.default.id]
+  security_groups = [aws_security_group.bastion_sg.id, module.vpc.default_security_group_id]
   key_name        = aws_key_pair.bastion_key.key_name
-  subnet_id       = aws_subnet.public[0].id
+  subnet_id       = module.vpc.public_subnets[0]
 
   tags = merge(
     {
@@ -47,7 +47,7 @@ resource "aws_key_pair" "bastion_key" {
 resource "aws_security_group" "bastion_sg" {
   name        = "SG Bastion"
   description = "Allow SSH inbound traffic for the bastion instance"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = module.vpc.vpc_id
 
   ingress {
     description = "SSH from a Secure Location"
